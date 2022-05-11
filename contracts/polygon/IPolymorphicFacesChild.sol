@@ -3,8 +3,8 @@ pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface IPolymorphChild is IERC721 {
-    function mintPolymorphWithInfo(
+interface IPolymorphicFacesChild is IERC721 {
+    function mintFaceWithInfo(
         uint256 tokenId,
         address ownerAddress,
         uint256 gene

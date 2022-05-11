@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.13;
 
-import "../base/PolymorphWithGeneChanger.sol";
-import "./IPolymorphChild.sol";
+import "../base/PolymorphicFacesWithGeneChanger.sol";
+import "./IPolymorphicFacesChild.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract PolymorphChild is IPolymorphChild, PolymorphWithGeneChanger {
-    using PolymorphGeneGenerator for PolymorphGeneGenerator.Gene;
+contract PolymorphicFacesChild is IPolymorphicFacesChild, PolymorphicFacesWithGeneChanger {
+    using PolymorphicFacesGeneGenerator for PolymorphicFacesGeneGenerator.Gene;
 
     IERC20 public maticWETH;
 
@@ -21,7 +21,7 @@ contract PolymorphChild is IPolymorphChild, PolymorphWithGeneChanger {
         uint256 _randomizeGenomePrice,
         string memory _arweaveAssetsJSON
     )
-        PolymorphWithGeneChanger(
+        PolymorphicFacesWithGeneChanger(
             name,
             symbol,
             baseURI,
@@ -46,7 +46,7 @@ contract PolymorphChild is IPolymorphChild, PolymorphWithGeneChanger {
         revert("Minting is disabled on side chains");
     }
 
-    function mintPolymorphWithInfo(
+    function mintFaceWithInfo(
         uint256 tokenId,
         address ownerAddress,
         uint256 gene
@@ -89,7 +89,7 @@ contract PolymorphChild is IPolymorphChild, PolymorphWithGeneChanger {
             oldGene,
             _genes[tokenId],
             price,
-            PolymorphEventType.MORPH
+            FacesEventType.MORPH
         );
     }
 
@@ -121,7 +121,7 @@ contract PolymorphChild is IPolymorphChild, PolymorphWithGeneChanger {
             oldGene,
             _genes[tokenId],
             randomizeGenomePrice,
-            PolymorphEventType.MORPH
+            FacesEventType.MORPH
         );
     }
 }

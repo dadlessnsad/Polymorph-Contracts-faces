@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.13;
 
-interface IPolymorphWithGeneChanger {
+interface IPolymorphicFacesWithGeneChanger {
     function morphGene(uint256 tokenId, uint256 genePosition) external payable;
 
     function randomizeGenome(uint256 tokenId) external payable;

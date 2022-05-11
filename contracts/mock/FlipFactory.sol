@@ -3,12 +3,12 @@ pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
-import "../mainnet/PolymorphRoot.sol";
+import "../mainnet/PolymorphicFacesRoot.sol";
 
 contract FlipFactory is ERC721Holder {
     bytes internal _bytecode;
-    PolymorphRoot polymorph =
-        PolymorphRoot(payable(0x273c507D8E21cDE039491B14647Fe9278D88e91D)); // Ropsten Contract;
+    PolymorphicFacesRoot faces =
+        PolymorphicFacesRoot(payable(0x273c507D8E21cDE039491B14647Fe9278D88e91D)); // Ropsten Contract;
 
     constructor() {}
 
@@ -21,13 +21,13 @@ contract FlipFactory is ERC721Holder {
             bytes32(0),
             keccak256(bytecode)
         );
-        polymorph.safeTransferFrom(msg.sender, expectedAddress, morphId);
+        faces.safeTransferFrom(msg.sender, expectedAddress, morphId);
         _bytecode = bytecode;
         search(limit);
         delete _bytecode;
         require(
-            polymorph.ownerOf(morphId) == msg.sender,
-            "Did not receive polymorph"
+            faces.ownerOf(morphId) == msg.sender,
+            "Did not receive faces"
         );
     }
 

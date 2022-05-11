@@ -2,33 +2,33 @@
 pragma solidity 0.8.13;
 
 import "../tunnel/FxBaseRootTunnel.sol";
-import "../base/PolymorphTunnel.sol";
-import "./PolymorphRoot.sol";
+import "../base/PolymorphicFacesTunnel.sol";
+import "./PolymorphicFacesRoot.sol";
 
-contract PolymorphRootTunnel is FxBaseRootTunnel, PolymorphTunnel {
+contract PolymorphicFacesRootTunnel is FxBaseRootTunnel, PolymorphicFacesTunnel {
     constructor(
         address _checkpointManager,
         address _fxRoot,
         address payable _daoAddress
     )
         FxBaseRootTunnel(_checkpointManager, _fxRoot)
-        PolymorphTunnel(_daoAddress)
+        PolymorphicFacesTunnel(_daoAddress)
     {}
 
-    PolymorphRoot public polymorphContract;
+    PolymorphicFacesRoot public facesContract;
 
     modifier onlyOwner(uint256 tokenId) {
         require(
-            polymorphContract.ownerOf(tokenId) == msg.sender,
-            "Only owner can move polymorph"
+            facesContract.ownerOf(tokenId) == msg.sender,
+            "Only owner can move faces"
         );
         _;
     }
 
     function _processMessageFromChild(bytes memory data) internal override {
         require(
-            address(polymorphContract) != address(0),
-            "Polymorph contract hasn't been set yet"
+            address(facesContract) != address(0),
+            "faces contract hasn't been set yet"
         );
         (
             uint256 tokenId,
@@ -38,9 +38,9 @@ contract PolymorphRootTunnel is FxBaseRootTunnel, PolymorphTunnel {
             uint256 genomeChanges
         ) = _decodeMessage(data);
 
-        polymorphContract.transferFrom(address(this), ownerAddress, tokenId);
+        facesContract.transferFrom(address(this), ownerAddress, tokenId);
 
-        polymorphContract.wormholeUpdateGene(
+        facesContract.wormholeUpdateGene(
             tokenId,
             gene,
             isNotVirgin,
@@ -53,23 +53,23 @@ contract PolymorphRootTunnel is FxBaseRootTunnel, PolymorphTunnel {
         override
         onlyOwner(tokenId)
     {
-        polymorphContract.transferFrom(msg.sender, address(this), tokenId);
+        facesContract.transferFrom(msg.sender, address(this), tokenId);
 
         _sendMessageToChild(
             abi.encode(
                 tokenId,
                 msg.sender,
-                polymorphContract.geneOf(tokenId),
-                polymorphContract.isNotVirgin(tokenId),
-                polymorphContract.genomeChanges(tokenId)
+                facesContract.geneOf(tokenId),
+                facesContract.isNotVirgin(tokenId),
+                facesContract.genomeChanges(tokenId)
             )
         );
     }
 
-    function setPolymorphContract(address payable contractAddress)
+    function setFacesContract(address payable contractAddress)
         public
         onlyDAO
     {
-        polymorphContract = PolymorphRoot(contractAddress);
+        facesContract = PolymorphicFacesRoot(contractAddress);
     }
 }

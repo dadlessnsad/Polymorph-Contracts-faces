@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.13;
 
-import "./IPolymorphRoot.sol";
+import "./IPolymorphicFacesRoot.sol";
 import "../base/Polymorph.sol";
-import "../base/PolymorphWithGeneChanger.sol";
+import "../base/PolymorphicFacesWithGeneChanger.sol";
+//Todo add EIP2981 Royalty Standard
 
-contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
-    using PolymorphGeneGenerator for PolymorphGeneGenerator.Gene;
+//todo must read from polymorph V2 contract wallet address input should return an amount of V1 Polymorphs burned by that address
+contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFacesRoot {
+    using PolymorphicFacesGeneGenerator for PolymorphicFacesGeneGenerator.Gene;
 
     struct Params {
         string name;
@@ -15,29 +17,30 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
         address payable _daoAddress;
         uint256 premintedTokensCount;
         uint256 _baseGenomeChangePrice;
-        uint256 _polymorphPrice;
+        uint256 _facesPrice;
         uint256 _maxSupply;
         uint256 _randomizeGenomePrice;
-        uint256 _bulkBuyLimit;
+        uint256 _bulkBuyLimit;          //Todo Bulk Claim limit?
         string _arweaveAssetsJSON;
-        address _polymorphV1Address;
+        address _polymorphV2Address;    //Todo change to v2
     }
 
-    uint256 public polymorphPrice;
+    uint256 public facesPrice;
     uint256 public maxSupply;
     uint256 public bulkBuyLimit;
 
-    Polymorph public polymorphV1Contract;
+    Polymorph public polymorphV2Contract;   //To check Wallet burn amount
     uint256 public totalBurnedV1;
 
-    uint16 constant private STARTING_TOKEN_ID = 10000;
+    // Where should TokenId start
+    // uint16 constant private STARTING_TOKEN_ID = 10000;
 
-    event PolymorphPriceChanged(uint256 newPolymorphPrice);
+    event FacesPriceChanged(uint256 newFacesPrice);
     event MaxSupplyChanged(uint256 newMaxSupply);
     event BulkBuyLimitChanged(uint256 newBulkBuyLimit);
 
     constructor(Params memory params)
-        PolymorphWithGeneChanger(
+        PolymorphicFacesWithGeneChanger(
             params.name,
             params.symbol,
             params.baseURI,
@@ -47,20 +50,18 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
             params._arweaveAssetsJSON
         )
     {
-        polymorphPrice = params._polymorphPrice;
+        facesPrice = params._facesPrice;
         maxSupply = params._maxSupply;
-
         bulkBuyLimit = params._bulkBuyLimit;
-
         arweaveAssetsJSON = params._arweaveAssetsJSON;
-        polymorphV1Contract = Polymorph(params._polymorphV1Address);
+        polymorphV2Contract = Polymorph(params._polymorphV2Address);
         geneGenerator.random();
-
-        _tokenId = _tokenId + STARTING_TOKEN_ID;
-
+        
+        // _tokenId = _tokenId + STARTING_TOKEN_ID;
         _preMint(params.premintedTokensCount);
     }
 
+    //Todo is there a premint for this?
     function _preMint(uint256 amountToMint) internal {
         for (uint256 i = 0; i < amountToMint; i++) {
             _tokenId++;
@@ -76,7 +77,7 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
 
         _genes[_tokenId] = geneGenerator.random();
 
-        (bool transferToDaoStatus, ) = daoAddress.call{value: polymorphPrice}(
+        (bool transferToDaoStatus, ) = daoAddress.call{value: facesPrice}(
             ""
         );
         require(
@@ -84,7 +85,7 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
             "Address: unable to send value, recipient may have reverted"
         );
 
-        uint256 excessAmount = msg.value - polymorphPrice;
+        uint256 excessAmount = msg.value - facesPrice;
         if (excessAmount > 0) {
             (bool returnExcessStatus, ) = _msgSender().call{
                 value: excessAmount
@@ -99,18 +100,19 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
             _tokenId,
             0,
             _genes[_tokenId],
-            polymorphPrice,
-            PolymorphEventType.MINT
+            facesPrice,
+            FacesEventType.MINT
         );
     }
 
+    //todo Rewrite for Face claim based on how many V1 polymorphs burned
     function burnAndMintNewPolymorph(uint256[] calldata tokenIds) external nonReentrant {
         for(uint256 i = 0; i < tokenIds.length; i++) {
             uint256 currentIdToBurnAndMint = tokenIds[i];
-            require(_msgSender() == polymorphV1Contract.ownerOf(currentIdToBurnAndMint));
+            require(_msgSender() == polymorphV2Contract.ownerOf(currentIdToBurnAndMint));
 
-            uint256 geneToTransfer = polymorphV1Contract.geneOf(currentIdToBurnAndMint);
-            polymorphV1Contract.burn(currentIdToBurnAndMint);
+            uint256 geneToTransfer = polymorphV2Contract.geneOf(currentIdToBurnAndMint);
+            polymorphV2Contract.burn(currentIdToBurnAndMint);
 
             totalBurnedV1++;
 
@@ -119,9 +121,10 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
             _mint(_msgSender(), currentIdToBurnAndMint);
 
             emit TokenMinted(currentIdToBurnAndMint, _genes[currentIdToBurnAndMint]);
-            emit TokenBurnedAndMinted(currentIdToBurnAndMint, _genes[currentIdToBurnAndMint]);
+            // emit TokenBurnedAndMinted(currentIdToBurnAndMint, _genes[currentIdToBurnAndMint]);
         }
     }
+
 
     function bulkBuy(uint256 amount) public payable override nonReentrant {
         require(
@@ -134,14 +137,14 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
         );
 
         (bool transferToDaoStatus, ) = daoAddress.call{
-            value: polymorphPrice * amount
+            value: facesPrice * amount
         }("");
         require(
             transferToDaoStatus,
             "Address: unable to send value, recipient may have reverted"
         );
 
-        uint256 excessAmount = msg.value - (polymorphPrice * amount);
+        uint256 excessAmount = msg.value - (facesPrice * amount);
         if (excessAmount > 0) {
             (bool returnExcessStatus, ) = _msgSender().call{
                 value: excessAmount
@@ -160,8 +163,8 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
                 _tokenId,
                 0,
                 _genes[_tokenId],
-                polymorphPrice,
-                PolymorphEventType.MINT
+                facesPrice,
+                FacesEventType.MINT
             );
         }
     }
@@ -174,15 +177,15 @@ contract PolymorphRoot is PolymorphWithGeneChanger, IPolymorphRoot {
         revert("Should not use this one");
     }
 
-    function setPolymorphPrice(uint256 newPolymorphPrice)
+    
+    function setFacesPrice(uint256 newFacesPrice)
         public
         virtual
-        override
         onlyDAO
     {
-        polymorphPrice = newPolymorphPrice;
+        facesPrice = newFacesPrice;
 
-        emit PolymorphPriceChanged(newPolymorphPrice);
+        emit FacesPriceChanged(newFacesPrice);
     }
 
     function setMaxSupply(uint256 _maxSupply) public virtual override onlyDAO {

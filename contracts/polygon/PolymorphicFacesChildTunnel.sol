@@ -2,24 +2,24 @@
 pragma solidity 0.8.13;
 
 import "../tunnel/FxBaseChildTunnel.sol";
-import "../base/PolymorphTunnel.sol";
-import "../polygon/PolymorphChild.sol";
+import "../base/PolymorphicFacesTunnel.sol";
+import "../polygon/PolymorphicFacesChild.sol";
 
-contract PolymorphChildTunnel is FxBaseChildTunnel, PolymorphTunnel {
+contract PolymorphicFacesChildTunnel is FxBaseChildTunnel, PolymorphicFacesTunnel {
     constructor(address _fxChild, address payable _daoAddress)
         FxBaseChildTunnel(_fxChild)
-        PolymorphTunnel(_daoAddress)
+        PolymorphicFacesTunnel(_daoAddress)
     {}
 
-    PolymorphChild public polymorphContract;
+    PolymorphicFacesChild public facesContract;
     uint256 public latestStateId;
     address public latestRootMessageSender;
     bytes public latestData;
 
     modifier onlyOwner(uint256 tokenId) {
         require(
-            polymorphContract.ownerOf(tokenId) == msg.sender,
-            "Only owner can move polymorph"
+            facesContract.ownerOf(tokenId) == msg.sender,
+            "Only owner can move faces"
         );
         _;
     }
@@ -41,8 +41,8 @@ contract PolymorphChildTunnel is FxBaseChildTunnel, PolymorphTunnel {
             uint256 genomeChanges
         ) = _decodeMessage(data);
         //TODO: Maybe check if person has enough MATIC tokens before that?
-        polymorphContract.mintPolymorphWithInfo(tokenId, ownerAddress, gene);
-        polymorphContract.wormholeUpdateGene(
+        facesContract.mintFaceWithInfo(tokenId, ownerAddress, gene);
+        facesContract.wormholeUpdateGene(
             tokenId,
             gene,
             isVirgin,
@@ -55,10 +55,10 @@ contract PolymorphChildTunnel is FxBaseChildTunnel, PolymorphTunnel {
         override
         onlyOwner(tokenId)
     {
-        uint256 gene = polymorphContract.geneOf(tokenId);
-        bool isNotVirgin = polymorphContract.isNotVirgin(tokenId);
-        uint256 genomeChanges = polymorphContract.genomeChanges(tokenId);
-        polymorphContract.burn(tokenId);
+        uint256 gene = facesContract.geneOf(tokenId);
+        bool isNotVirgin = facesContract.isNotVirgin(tokenId);
+        uint256 genomeChanges = facesContract.genomeChanges(tokenId);
+        facesContract.burn(tokenId);
 
         //TODO: Maybe clear gene and genomeChanges
         // It may not be a problem because when we mint on polygon they will be overwritten
@@ -67,10 +67,10 @@ contract PolymorphChildTunnel is FxBaseChildTunnel, PolymorphTunnel {
         );
     }
 
-    function setPolymorphContract(address payable contractAddress)
+    function setFacesContract(address payable contractAddress)
         public
         onlyDAO
     {
-        polymorphContract = PolymorphChild(contractAddress);
+        facesContract = PolymorphicFacesChild(contractAddress);
     }
 }

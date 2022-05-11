@@ -2,20 +2,20 @@
 pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import "../lib/PolymorphGeneGenerator.sol";
+import "../lib/PolymorphicFacesGeneGenerator.sol";
 import "../modifiers/TunnelEnabled.sol";
-import "./Polymorph.sol";
-import "./IPolymorphWithGeneChanger.sol";
+import "./PolymorphicFaces.sol";
+import "./IPolymorphicFacesWithGeneChanger.sol";
 
-abstract contract PolymorphWithGeneChanger is
-    IPolymorphWithGeneChanger,
-    Polymorph,
+abstract contract PolymorphicFacesWithGeneChanger is
+    IPolymorphicFacesWithGeneChanger,
+    PolymorphicFaces,
     TunnelEnabled
 {
-    using PolymorphGeneGenerator for PolymorphGeneGenerator.Gene;
+    using PolymorphicFacesGeneGenerator for PolymorphicFacesGeneGenerator.Gene;
     using Address for address;
-
-    uint256 constant private TOTAL_ATTRIBUTES = 38;
+    //@Todo double check 
+    uint256 constant private TOTAL_ATTRIBUTES = 34;
 
     mapping(uint256 => uint256) internal _genomeChanges;
     mapping(uint256 => bool) public isNotVirgin;
@@ -33,7 +33,7 @@ abstract contract PolymorphWithGeneChanger is
         uint256 _baseGenomeChangePrice,
         uint256 _randomizeGenomePrice,
         string memory _arweaveAssetsJSON
-    ) Polymorph(name, symbol, baseURI, _daoAddress, _arweaveAssetsJSON) {
+    ) PolymorphicFaces(name, symbol, baseURI, _daoAddress, _arweaveAssetsJSON) {
         baseGenomeChangePrice = _baseGenomeChangePrice;
         randomizeGenomePrice = _randomizeGenomePrice;
     }
@@ -93,7 +93,7 @@ abstract contract PolymorphWithGeneChanger is
             oldGene,
             _genes[tokenId],
             price,
-            PolymorphEventType.MORPH
+            FacesEventType.MORPH
         );
     }
 
@@ -104,6 +104,7 @@ abstract contract PolymorphWithGeneChanger is
     ) internal pure virtual returns (uint256 newGene) {
         require(genePosition < TOTAL_ATTRIBUTES, "Bad gene position");
         uint256 mod = 0;
+        //genePosition >= 0 to swap background?
         if (genePosition > 0) {
             mod = genome % (10**(genePosition * 2)); // Each gene is 2 digits long
         }
@@ -151,7 +152,7 @@ abstract contract PolymorphWithGeneChanger is
             oldGene,
             _genes[tokenId],
             randomizeGenomePrice,
-            PolymorphEventType.MORPH
+            FacesEventType.MORPH
         );
     }
 
@@ -220,7 +221,7 @@ abstract contract PolymorphWithGeneChanger is
             oldGene,
             _genes[tokenId],
             priceForGenomeChange(tokenId),
-            PolymorphEventType.MORPH
+            FacesEventType.MORPH
         );
     }
 }
