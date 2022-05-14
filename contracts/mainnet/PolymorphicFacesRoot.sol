@@ -17,27 +17,26 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
         address payable _daoAddress;
         uint256 premintedTokensCount;
         uint256 _baseGenomeChangePrice;
-        uint256 _facesPrice;
         uint256 _maxSupply;
         uint256 _randomizeGenomePrice;
-        uint256 _bulkBuyLimit;          //Todo Bulk Claim limit?
+        uint256 _bulkBuyLimit;
         string _arweaveAssetsJSON;
-        address _polymorphV2Address;    //Todo change to v2
+        address _polymorphV2Address;
     }
 
-    uint256 public facesPrice;
     uint256 public maxSupply;
     uint256 public bulkBuyLimit;
 
-    Polymorph public polymorphV2Contract;   //To check Wallet burn amount
+    Polymorph public polymorphV2Contract;   
     uint256 public totalBurnedV1;
 
-    // Where should TokenId start
-    // uint16 constant private STARTING_TOKEN_ID = 10000;
 
-    event FacesPriceChanged(uint256 newFacesPrice);
+    mapping(uint256 => bool) public isClaimed;  //Mapping to Track Users claim amount??
+    //mapping(address => mapping(uint256 => bool)) userClaimed  ?
+
     event MaxSupplyChanged(uint256 newMaxSupply);
     event BulkBuyLimitChanged(uint256 newBulkBuyLimit);
+    event PolyV2AddressChanged(address newPolyV2Address);
 
     constructor(Params memory params)
         PolymorphicFacesWithGeneChanger(
@@ -50,148 +49,66 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
             params._arweaveAssetsJSON
         )
     {
-        facesPrice = params._facesPrice;
         maxSupply = params._maxSupply;
         bulkBuyLimit = params._bulkBuyLimit;
         arweaveAssetsJSON = params._arweaveAssetsJSON;
         polymorphV2Contract = Polymorph(params._polymorphV2Address);
         geneGenerator.random();
-        
-        // _tokenId = _tokenId + STARTING_TOKEN_ID;
-        _preMint(params.premintedTokensCount);
     }
 
-    //Todo is there a premint for this?
-    function _preMint(uint256 amountToMint) internal {
-        for (uint256 i = 0; i < amountToMint; i++) {
-            _tokenId++;
-            _genes[_tokenId] = geneGenerator.random();
-            _mint(_msgSender(), _tokenId);
-        }
-    }
-
-    function mint() public payable override nonReentrant {
+    //todo Rewrite for Face claim based on how many V1 polymorphs burned
+    function mint() external virtual nonReentrant {
         require(_tokenId < maxSupply, "Total supply reached");
+
+        // require(Polymorph.isClaimed(_tokenId)[msg.sender] == true);
 
         _tokenId++;
 
         _genes[_tokenId] = geneGenerator.random();
 
-        (bool transferToDaoStatus, ) = daoAddress.call{value: facesPrice}(
-            ""
-        );
-        require(
-            transferToDaoStatus,
-            "Address: unable to send value, recipient may have reverted"
-        );
-
-        uint256 excessAmount = msg.value - facesPrice;
-        if (excessAmount > 0) {
-            (bool returnExcessStatus, ) = _msgSender().call{
-                value: excessAmount
-            }("");
-            require(returnExcessStatus, "Failed to return excess.");
-        }
-
         _mint(_msgSender(), _tokenId);
 
         emit TokenMinted(_tokenId, _genes[_tokenId]);
         emit TokenMorphed(
-            _tokenId,
-            0,
-            _genes[_tokenId],
-            facesPrice,
+            _tokenId, 
+            0, 
+            _genes[_tokenId], 
+            0, 
             FacesEventType.MINT
         );
     }
 
-    //todo Rewrite for Face claim based on how many V1 polymorphs burned
-    function burnAndMintNewPolymorph(uint256[] calldata tokenIds) external nonReentrant {
-        for(uint256 i = 0; i < tokenIds.length; i++) {
-            uint256 currentIdToBurnAndMint = tokenIds[i];
-            require(_msgSender() == polymorphV2Contract.ownerOf(currentIdToBurnAndMint));
 
-            uint256 geneToTransfer = polymorphV2Contract.geneOf(currentIdToBurnAndMint);
-            polymorphV2Contract.burn(currentIdToBurnAndMint);
-
-            totalBurnedV1++;
-
-            _genes[currentIdToBurnAndMint] = geneToTransfer;
-
-            _mint(_msgSender(), currentIdToBurnAndMint);
-
-            emit TokenMinted(currentIdToBurnAndMint, _genes[currentIdToBurnAndMint]);
-            // emit TokenBurnedAndMinted(currentIdToBurnAndMint, _genes[currentIdToBurnAndMint]);
-        }
-    }
-
-
-    function bulkBuy(uint256 amount) public payable override nonReentrant {
-        require(
-            amount <= bulkBuyLimit,
-            "Cannot bulk buy more than the preset limit"
-        );
-        require(
-            _tokenId + amount <= maxSupply,
-            "Total supply reached"
-        );
-
-        (bool transferToDaoStatus, ) = daoAddress.call{
-            value: facesPrice * amount
-        }("");
-        require(
-            transferToDaoStatus,
-            "Address: unable to send value, recipient may have reverted"
-        );
-
-        uint256 excessAmount = msg.value - (facesPrice * amount);
-        if (excessAmount > 0) {
-            (bool returnExcessStatus, ) = _msgSender().call{
-                value: excessAmount
-            }("");
-            require(returnExcessStatus, "Failed to return excess.");
-        }
-
-        for (uint256 i = 0; i < amount; i++) {
+    function daoMint() public onlyDAO {
+        require(_tokenId < maxSupply, "Total supply reached");
+        uint256 remaningSupply = (maxSupply - totalSupply()) + 1; // ?????
+        for (uint i = 1; i < remaningSupply; i++) {
             _tokenId++;
-
             _genes[_tokenId] = geneGenerator.random();
             _mint(_msgSender(), _tokenId);
 
             emit TokenMinted(_tokenId, _genes[_tokenId]);
             emit TokenMorphed(
-                _tokenId,
+                _tokenId, 
                 0,
                 _genes[_tokenId],
-                facesPrice,
+                0, 
                 FacesEventType.MINT
             );
-        }
+        }    
     }
 
-    function mint(address to)
-        public
-        pure
-        override(ERC721PresetMinterPauserAutoId)
-    {
-        revert("Should not use this one");
-    }
-
-    
-    function setFacesPrice(uint256 newFacesPrice)
-        public
-        virtual
-        onlyDAO
-    {
-        facesPrice = newFacesPrice;
-
-        emit FacesPriceChanged(newFacesPrice);
-    }
 
     function setMaxSupply(uint256 _maxSupply) public virtual override onlyDAO {
         maxSupply = _maxSupply;
 
         emit MaxSupplyChanged(maxSupply);
+    }
+
+    function setPolyV2Address(address newPolyV2Address) public onlyDAO {
+        polymorphV2Contract = Polymorph(newPolyV2Address);
+
+        emit PolyV2AddressChanged(newPolyV2Address);
     }
 
     function setBulkBuyLimit(uint256 _bulkBuyLimit)
@@ -205,7 +122,4 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
         emit BulkBuyLimitChanged(_bulkBuyLimit);
     }
 
-    receive() external payable {
-        mint();
-    }
 }

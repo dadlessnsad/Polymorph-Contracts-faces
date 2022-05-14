@@ -19,6 +19,7 @@ abstract contract PolymorphicFaces is
     mapping(uint256 => uint256) internal _genes;
     string public arweaveAssetsJSON;
 
+
     event TokenMorphed(
         uint256 indexed tokenId,
         uint256 oldGene,        
@@ -82,6 +83,8 @@ abstract contract PolymorphicFaces is
             FacesEventType.TRANSFER
         );
     }
+
+    
 
     function setBaseURI(string memory _baseURI)
         public

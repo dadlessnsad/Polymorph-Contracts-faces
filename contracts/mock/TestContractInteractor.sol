@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.13;
+// pragma solidity 0.8.13;
 
-import "../mainnet/PolymorphicFacesRoot.sol";
+// import "../mainnet/PolymorphicFacesRoot.sol";
 
-contract TestContractInteractor {
-    PolymorphicFacesRoot public facesTestContract;
+// contract TestContractInteractor {
+//     PolymorphicFacesRoot public facesTestContract;
 
-    constructor(address payable _facesAddress) {
-        facesTestContract = PolymorphicFacesRoot(_facesAddress);
-    }
+//     constructor(address payable _facesAddress) {
+//         facesTestContract = PolymorphicFacesRoot(_facesAddress);
+//     }
 
-    function triggerGeneChange(uint256 tokenId, uint256 genePosition)
-        public
-        payable
-    {
-        facesTestContract.morphGene{value: msg.value}(
-            tokenId,
-            genePosition
-        );
-    }
+//     function triggerGeneChange(uint256 tokenId, uint256 genePosition)
+//         public
+//         payable
+//     {
+//         facesTestContract.morphGene{value: msg.value}(
+//             tokenId,
+//             genePosition
+//         );
+//     }
 
-    function triggerRandomize(uint256 tokenId) public payable {
-        facesTestContract.randomizeGenome{value: msg.value}(tokenId);
-    }
+//     function triggerRandomize(uint256 tokenId) public payable {
+//         facesTestContract.randomizeGenome{value: msg.value}(tokenId);
+//     }
 
-    function triggerMint() public payable {
-        facesTestContract.mint{value: msg.value}();
-    }
+//     function triggerMint() public payable {
+//         facesTestContract.mint{value: msg.value}();
+//     }
 
-    function triggerBulkBuy(uint256 amount) public payable {
-        facesTestContract.bulkBuy{value: msg.value}(amount);
-    }
-}
+//     function triggerBulkBuy(uint256 amount) public payable {
+//         facesTestContract.bulkBuy{value: msg.value}(amount);
+//     }
+// }
