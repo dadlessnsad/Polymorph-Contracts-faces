@@ -63,7 +63,7 @@ contract PolymorphicFacesRoot is
         public
         view
         virtual
-        override(ERC721PresetMinterPauserAutoId, ERC2981Base, IERC165)
+        override(ERC721PresetMinterPauserAutoId, IERC165, ERC2981Base)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

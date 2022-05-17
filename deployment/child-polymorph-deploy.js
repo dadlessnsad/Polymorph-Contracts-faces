@@ -14,16 +14,15 @@ async function printDeployerInfo() {
 async function PolymorphDeploy() {
   await printDeployerInfo();
 
-  const tokenName = "Polymorph";
-  const tokenSymbol = "MORPH";
-  const metadataURI =
-    "https://us-central1-polymorphmetadata.cloudfunctions.net/images-function?id=";
+  const tokenName = "Ze Burger";
+  const tokenSymbol = "XLBLT";
+  const metadataURI ="https://us-central1-Burgermetadata.cloudfunctions.net/images-function?id=";
   const DAOAddress = "0x8FcE67537676879Bc5a1B86B403400E1614Bfce6";
   const maticWETHAddress = "0x4Fb90bc32709d73A5E745B56708C84A6Ad7Ab5C9";
   const geneChangePrice = ethers.utils.parseEther("0.01");
   const randomizePrice = ethers.utils.parseEther("0.01");
   const arweaveContainer =
-    "https://arweave.net/5KDDRA5EE9p-Bw29ryB9Uz6SvMRNMCyXKkOzW_ZT9gA";
+    "https://arweave.net/5KDDRA5EE9p-ugifhfchjcjlkhjfckhfjjcljh";
 
   const Polymorph = await hre.ethers.getContractFactory("PolymorphChild");
   const polymorph = await Polymorph.deploy(

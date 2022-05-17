@@ -16,7 +16,7 @@ async function childTunnelDeploy() {
 
   const mumbaiFxChild = "0xCf73231F28B7331BBe3124B907840A94851f9f11";
   //TODO: My wallet address. Change this when we have real dao address
-  const daoAddress = "0x8FcE67537676879Bc5a1B86B403400E1614Bfce6";
+  const daoAddress = "0xcb5c05B9916B49adf97cC31a0c7089F3B4Cfa8b1";
 
   const ChildTunnel = await hre.ethers.getContractFactory(
     "PolymorphicFacesChildTunnel"
