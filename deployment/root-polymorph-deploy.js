@@ -11,17 +11,16 @@ async function printDeployerInfo() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 }
 
-async function PolymorphDeploy() {
+async function PolymorphicFacesDeploy() {
   await printDeployerInfo();
 
-  const tokenName = "Polymorph";
-  const tokenSymbol = "MORPH";
+  const tokenName = "Polymorphic Faces";
+  const tokenSymbol = "FACES";
   const metadataURI =
-    "https://us-central1-polymorphmetadata.cloudfunctions.net/images-function?id=";
+    "https://us-central1-polymorphicfacesmetadata.cloudfunctions.net/images-function?id=";
   const DAOAddress = "0x8FcE67537676879Bc5a1B86B403400E1614Bfce6";
   const premint = 0;
   const geneChangePrice = ethers.utils.parseEther("0.01");
-  const polymorphPrice = ethers.utils.parseEther("0.0777");
   const polymorphsLimit = 10000;
   const randomizePrice = ethers.utils.parseEther("0.01");
   const bulkBuyLimit = 20;
@@ -36,7 +35,6 @@ async function PolymorphDeploy() {
     _daoAddress: DAOAddress,
     premintedTokensCount: premint,
     _baseGenomeChangePrice: geneChangePrice,
-    _polymorphPrice: polymorphPrice,
     _maxSupply: polymorphsLimit,
     _randomizeGenomePrice: randomizePrice,
     _bulkBuyLimit: bulkBuyLimit,
@@ -44,22 +42,22 @@ async function PolymorphDeploy() {
     _polymorphV1Address: polymorphV1Address,
   };
 
-  const Polymorph = await hre.ethers.getContractFactory("PolymorphRoot");
-  const polymorph = await Polymorph.deploy(constructorArgs);
+  const PolymorphicFaces = await hre.ethers.getContractFactory("PolymorphicFacesRoot");
+  const faces = await PolymorphicFaces.deploy(constructorArgs);
 
-  await polymorph.deployed();
+  await faces.deployed();
 
   await hre.tenderly.persistArtifacts({
-    name: "PolymorphRoot",
-    address: polymorph.address,
+    name: "PolymorphicFacesRoot",
+    address: faces.address,
   });
 
-  console.log(`Polymorph address: ${polymorph.address}`);
+  console.log(`PolymorphicFaces address: ${faces.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-PolymorphDeploy()
+PolymorphicFacesDeploy()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

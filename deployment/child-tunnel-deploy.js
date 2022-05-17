@@ -19,14 +19,14 @@ async function childTunnelDeploy() {
   const daoAddress = "0x8FcE67537676879Bc5a1B86B403400E1614Bfce6";
 
   const ChildTunnel = await hre.ethers.getContractFactory(
-    "PolymorphChildTunnel"
+    "PolymorphicFacesChildTunnel"
   );
   const childTunnel = await ChildTunnel.deploy(mumbaiFxChild, daoAddress);
 
   await childTunnel.deployed();
 
   await hre.tenderly.persistArtifacts({
-    name: "PolymorphChildTunnel",
+    name: "PolymorphicFacesChildTunnel",
     address: childTunnel.address,
   });
 

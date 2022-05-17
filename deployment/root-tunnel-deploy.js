@@ -20,13 +20,13 @@ async function rootTunnelDeploy() {
   //TODO: My wallet address. Change this when we have real dao address
   const daoAddress = "0x8FcE67537676879Bc5a1B86B403400E1614Bfce6";
 
-  const RootTunnel = await hre.ethers.getContractFactory("PolymorphRootTunnel");
+  const RootTunnel = await hre.ethers.getContractFactory("PolymorphicFacesRootTunnel");
   const rootTunnel = await RootTunnel.deploy(goerliCheckpoint, goerliFxRoot, daoAddress);
 
   await rootTunnel.deployed();
 
   await hre.tenderly.persistArtifacts({
-    name: "PolymorphRootTunnel",
+    name: "PolymorphicFacesRootTunnel",
     address: rootTunnel.address,
   });
 
