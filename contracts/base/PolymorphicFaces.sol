@@ -29,10 +29,7 @@ abstract contract PolymorphicFaces is
     );
     event TokenMinted(uint256 indexed tokenId, uint256 newGene);
 
-    // event TokenBurnedAndMinted(
-    //     uint256 indexed tokenId,
-    //     uint256 gene
-    // );
+
     event BaseURIChanged(string arweaveAssetsJSON);
     event ArweaveAssetsJSONChanged(string arweaveAssetsJSON);
     
@@ -84,7 +81,9 @@ abstract contract PolymorphicFaces is
         );
     }
 
-    
+    // function setRoyalties(address recipient, uint256 value) public onlyDAO {
+    //     _setRoyalties(recipient, value);
+    // }    
 
     function setBaseURI(string memory _baseURI)
         public

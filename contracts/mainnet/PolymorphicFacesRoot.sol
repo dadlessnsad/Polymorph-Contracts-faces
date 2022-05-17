@@ -2,12 +2,15 @@
 pragma solidity 0.8.13;
 
 import "./IPolymorphicFacesRoot.sol";
+import "../base/ERC2981Royalties/ERC2981ContractWideRoyalties.sol";
 import "../base/Polymorph.sol";
 import "../base/PolymorphicFacesWithGeneChanger.sol";
-//Todo add EIP2981 Royalty Standard
 
-//todo must read from polymorph V2 contract wallet address input should return an amount of V1 Polymorphs burned by that address
-contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFacesRoot {
+contract PolymorphicFacesRoot is 
+    PolymorphicFacesWithGeneChanger,
+    IPolymorphicFacesRoot, 
+    ERC2981ContractWideRoyalties 
+{
     using PolymorphicFacesGeneGenerator for PolymorphicFacesGeneGenerator.Gene;
 
     struct Params {
@@ -56,6 +59,16 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
         geneGenerator.random();
     }
 
+       function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721PresetMinterPauserAutoId, ERC2981Base, IERC165)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     //todo Rewrite for Face claim based on how many V1 polymorphs burned
     function mint() external virtual nonReentrant {
         require(_tokenId < maxSupply, "Total supply reached");
@@ -97,7 +110,10 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
             );
         }    
     }
-
+    
+    function setRoyalties(address recipient, uint256 value) public onlyDAO {
+        _setRoyalties(recipient, value);
+    }
 
     function setMaxSupply(uint256 _maxSupply) public virtual override onlyDAO {
         maxSupply = _maxSupply;
@@ -122,4 +138,7 @@ contract PolymorphicFacesRoot is PolymorphicFacesWithGeneChanger, IPolymorphicFa
         emit BulkBuyLimitChanged(_bulkBuyLimit);
     }
 
+//    receive() external payable {
+//         mint();
+//     }
 }
