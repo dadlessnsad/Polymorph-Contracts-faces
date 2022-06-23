@@ -44,11 +44,11 @@ describe("ERC721Consumable", async () => {
             _bulkBuyLimit: bulkBuyLimit,
             _arweaveAssetsJSON: arweaveAssetsJSON,
             _polymorphV1Address: polymorphV1Address,
-          };
+	};
 
         const PolymorphRoot = await ethers.getContractFactory("PolymorphRoot");
         polymorphInstance = await PolymorphRoot.deploy(constructorArgs);
-      
+
         console.log(`Polymorph instance deployed to: ${polymorphInstance.address}`);
 
 		const daoVotedSupply = 10100;

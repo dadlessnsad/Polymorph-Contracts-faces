@@ -11,7 +11,7 @@ const deploy = async (network, secret, etherscanApiKey) => {
 
 	const tokenName = "Ze Burger";
 	const tokenSymbol = "XLBLT";
-  const metadataURI ="https://us-central1-Burgermetadata.cloudfunctions.net/images-function?id=";
+  	const metadataURI ="https://us-central1-Burgermetadata.cloudfunctions.net/images-function?id=";
 	const DAOAddress = "0xcb5c05B9916B49adf97cC31a0c7089F3B4Cfa8b1" //TODO: set to DAO address
 	const premint = 0
 	const geneChangePrice = ethers.utils.parseEther("0.01");

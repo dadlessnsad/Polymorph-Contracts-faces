@@ -2,14 +2,14 @@
 pragma solidity 0.8.13;
 
 import "./IPolymorphicFacesRoot.sol";
-import "../base/ERC2981Royalties/ERC2981ContractWideRoyalties.sol";
-import "../base/Polymorph.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "../base/polymorph/PolymorphRoot.sol";
 import "../base/PolymorphicFacesWithGeneChanger.sol";
 
 contract PolymorphicFacesRoot is 
     PolymorphicFacesWithGeneChanger,
     IPolymorphicFacesRoot, 
-    ERC2981ContractWideRoyalties 
+    ERC2981 
 {
     using PolymorphicFacesGeneGenerator for PolymorphicFacesGeneGenerator.Gene;
 
@@ -30,12 +30,12 @@ contract PolymorphicFacesRoot is
     uint256 public maxSupply;
     uint256 public bulkBuyLimit;
 
-    Polymorph public polymorphV2Contract;   
+    PolymorphRoot public polymorphV2Contract;   
     uint256 public totalBurnedV1;
 
 
-    mapping(uint256 => bool) public isClaimed;  //Mapping to Track Users claim amount??
-    //mapping(address => mapping(uint256 => bool)) userClaimed  ?
+    mapping(uint256 => bool) public isClaimed;
+    mapping(address => uint256) public claimedAmount;
 
     event MaxSupplyChanged(uint256 newMaxSupply);
     event BulkBuyLimitChanged(uint256 newBulkBuyLimit);
@@ -55,40 +55,51 @@ contract PolymorphicFacesRoot is
         maxSupply = params._maxSupply;
         bulkBuyLimit = params._bulkBuyLimit;
         arweaveAssetsJSON = params._arweaveAssetsJSON;
-        polymorphV2Contract = Polymorph(params._polymorphV2Address);
+        polymorphV2Contract = PolymorphRoot(payable(params._polymorphV2Address));
         geneGenerator.random();
+        _setDefaultRoyalty(daoAddress, 500);
     }
 
-       function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override(ERC721PresetMinterPauserAutoId, IERC165, ERC2981Base)
+        override(ERC721PresetMinterPauserAutoId, IERC165, ERC2981)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
-    //todo Rewrite for Face claim based on how many V1 polymorphs burned
-    function mint() external virtual nonReentrant {
+    function mint(uint256[] memory tokenIds) external virtual nonReentrant {
         require(_tokenId < maxSupply, "Total supply reached");
+        require(tokenIds.length <= 20, "Can't mint more than 20 in one tx");
 
-        // require(Polymorph.isClaimed(_tokenId)[msg.sender] == true);
+        for(uint i=0; i<tokenIds.length;i++){
+            require(
+                polymorphV2Contract.burnCount(msg.sender) <= claimedAmount[msg.sender],
+                "Claimed current PolymorphV2 burn amount" 
+            );
+            require(!isClaimed[tokenIds[i]], "TokenID already claimed");
+            isClaimed[tokenIds[i]] = true;
+            claimedAmount[msg.sender]++;
 
-        _tokenId++;
+            _tokenId++;
 
-        _genes[_tokenId] = geneGenerator.random();
+            _genes[_tokenId] = geneGenerator.random();
 
-        _mint(_msgSender(), _tokenId);
+            _mint(_msgSender(), _tokenId);
 
-        emit TokenMinted(_tokenId, _genes[_tokenId]);
-        emit TokenMorphed(
-            _tokenId, 
-            0, 
-            _genes[_tokenId], 
-            0, 
-            FacesEventType.MINT
-        );
+
+
+            emit TokenMinted(_tokenId, _genes[_tokenId]);
+            emit TokenMorphed(
+                _tokenId, 
+                0, 
+                _genes[_tokenId], 
+                0, 
+                FacesEventType.MINT
+            );
+        }
     }
 
 
@@ -111,8 +122,8 @@ contract PolymorphicFacesRoot is
         }    
     }
     
-    function setRoyalties(address recipient, uint256 value) public onlyDAO {
-        _setRoyalties(recipient, value);
+    function setRoyalties(address recipient, uint96 value) public onlyDAO {
+        _setDefaultRoyalty(recipient, value);
     }
 
     function setMaxSupply(uint256 _maxSupply) public virtual override onlyDAO {
@@ -122,7 +133,7 @@ contract PolymorphicFacesRoot is
     }
 
     function setPolyV2Address(address newPolyV2Address) public onlyDAO {
-        polymorphV2Contract = Polymorph(newPolyV2Address);
+        polymorphV2Contract = PolymorphRoot(payable(newPolyV2Address));
 
         emit PolyV2AddressChanged(newPolyV2Address);
     }
